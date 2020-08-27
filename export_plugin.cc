@@ -31,7 +31,8 @@ class MyPlugin
       [&](const ignition::gazebo::Entity &_entity, const components::Visual *,
           const components::Name *_nameComp) -> bool
       {
-        std::cout << _nameComp << std::endl;
+        std::cout << _entity << std::endl;
+        return true;
       });
   }
 };
