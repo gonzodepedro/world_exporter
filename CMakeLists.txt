@@ -12,4 +12,5 @@ add_library(plugin_ign SHARED export_plugin.cc)
 set_property(TARGET plugin_ign PROPERTY CXX_STANDARD 17)
 target_link_libraries(plugin_ign
   PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
+  PRIVATE ignition-rendering3::ignition-rendering3
   PRIVATE ignition-gazebo3::ignition-gazebo3)
