@@ -30,7 +30,7 @@ make
 ### Set LD_LIBRARY_PATH
 
 ```
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/developer/workspaces/src/build
 ```
 
 ### RUN
