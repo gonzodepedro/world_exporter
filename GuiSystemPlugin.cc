@@ -35,7 +35,7 @@ void GuiSystemPlugin::LoadConfig(const tinyxml2::XMLElement * /*_pluginElem*/)
 {
   if (this->title.empty())
     this->title = "EXPORTER PLUGIN";
-
+  std::cout << "RUNNING EXPORTER PLUGIN" << std::endl;
   // Here you can read configuration from _pluginElem, if it's not null.
 }
 
