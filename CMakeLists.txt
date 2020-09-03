@@ -4,31 +4,18 @@ if(POLICY CMP0100)
   cmake_policy(SET CMP0100 NEW)
 endif()
 
-project(export_plugin)
+project(GuiSystemPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
 find_package(ignition-gazebo3 REQUIRED COMPONENTS gui)
-# find_package(ignition-cmake2 REQUIRED)
 
 QT5_ADD_RESOURCES(resources_RCC ${PROJECT_NAME}.qrc)
-
-# find_package(ignition-plugin1 REQUIRED COMPONENTS register)
-# set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
-
-# find_package(ignition-gazebo3 REQUIRED)
-# add_library(plugin_ign SHARED export_plugin.cc)
-# set_property(TARGET plugin_ign PROPERTY CXX_STANDARD 17)
-# target_link_libraries(plugin_ign
-#   PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-#   PRIVATE ignition-rendering3::ignition-rendering3
-#   PRIVATE ignition-gazebo3::ignition-gazebo3)
 
 add_library(${PROJECT_NAME} SHARED
   ${PROJECT_NAME}.cc
   ${resources_RCC}
 )
-
 target_link_libraries(${PROJECT_NAME}
   PRIVATE ignition-gazebo3::gui
 )

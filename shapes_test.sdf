@@ -18,8 +18,8 @@
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="/home/lobo/world_exporter/build/libplugin_ign.so"
-      name="MyPlugin">
+      filename="libGuiSystemPlugin.so"
+      name="GuiSystemPlugin">
     </plugin>
 
     <scene>
