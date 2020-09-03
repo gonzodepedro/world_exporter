@@ -10,17 +10,21 @@
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Sphere.hh>
-#include <ignition/rendering/Geometry.hh>
-#include <ignition/rendering/MeshDescriptor.hh>
+// #include <ignition/rendering/Geometry.hh>
+// #include <ignition/rendering/MeshDescriptor.hh>
 #include "ignition/gazebo/Util.hh"
-#include <ignition/rendering/RenderTypes.hh>
+// #include <ignition/rendering/RenderTypes.hh>
 #include <ignition/common/MeshManager.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
+// #include "export_plugin.moc"
+
+#include <ignition/plugin/Register.hh>
+#include <ignition/gazebo/gui/GuiEvents.hh>
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
-using namespace rendering;
+// using namespace rendering;
 
 class MyPlugin : public ignition::gazebo::GuiSystem
 {
