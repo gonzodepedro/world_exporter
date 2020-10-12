@@ -22,6 +22,7 @@
 
 #include "ignition/gazebo/Util.hh"
 
+#include "ignition/common/Material.hh"
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Mesh.hh>
 #include <ignition/common/SubMesh.hh>
@@ -122,19 +123,11 @@ class MyPlugin
           const components::Transparency *_transparency,
           const components::ParentEntity *_parent)->bool
       {
-        //_castShadows->Data();
-        //_transparency->Data();
-
-        // auto material = _ecm.Component<components::Material>(_entity);
-        // if (material != nullptr)
-        // {
-        //   visual.SetMaterial(material->Data());
-        // }
 
         std::string name = _name->Data().empty() ? std::to_string(_entity) :
             _name->Data();
 
-        ignerr << "Starting: " << name << " - " << _entity <<std::endl;
+        ignerr << "====================== Starting: " << name << " - " << _entity << "  ====================== " << std::endl;
 
         Entity parent = _parent->Data();
         std::stack<math::Pose3d> poses_stack;
@@ -153,6 +146,18 @@ class MyPlugin
         }
         ignerr << ">>>>  Name : " << name << " - POSE : " << localPose <<std::endl;
 
+        //TODO (@gonzo) Implement this
+        //_castShadows->Data();
+        //_transparency->Data();
+        common::MaterialPtr mat(new common::Material());
+        auto material = _ecm.Component<components::Material>(_entity);
+        if (material != nullptr){
+          mat->SetDiffuse(material->Data().Diffuse());
+          mat->SetAmbient(material->Data().Ambient());
+          mat->SetEmissive(material->Data().Emissive());
+          mat->SetSpecular(material->Data().Specular());
+        }
+
         const ignition::common::Mesh * mesh;
         std::weak_ptr<ignition::common::SubMesh> subm;
         math::Vector3d scale;
@@ -165,9 +170,12 @@ class MyPlugin
           ignerr << "It is a Box!"  << std::endl;
           if(meshManager->HasMesh("unit_box"))
           {
-            ignerr << "Box Found"  << std::endl;
+            ignerr << "Box Found..."  << std::endl;
             mesh = meshManager->MeshByName("unit_box");
             scale=_geom->Data().BoxShape()->Size();
+
+            int i = worldMesh.AddMaterial(mat);
+            mesh->SubMeshByIndex(0).lock()->SetMaterialIndex(i);
 
             subm = worldMesh.AddSubMesh(*mesh->SubMeshByIndex(0).lock().get());
             subm.lock()->Scale(scale);
@@ -190,6 +198,9 @@ class MyPlugin
 
             ignerr << "Pose : x: " << localPose << std::endl;
 
+            int i = worldMesh.AddMaterial(mat);
+            mesh->SubMeshByIndex(0).lock()->SetMaterialIndex(i);
+
             subm = worldMesh.AddSubMesh(*mesh->SubMeshByIndex(0).lock().get());
             subm.lock()->Scale(scale);
             subMeshMatrix.push_back(matrix);
@@ -205,18 +216,22 @@ class MyPlugin
           if(meshManager->HasMesh("unit_plane"))
           {
             ignerr << "Plane Found"  << std::endl;
+            // // Create a rotation for the plane mesh to account for the normal vector.
             mesh = meshManager->MeshByName("unit_plane");
 
             scale.X() = _geom->Data().PlaneShape()->Size().X();
             scale.Y() = _geom->Data().PlaneShape()->Size().Y();
 
-            // // Create a rotation for the plane mesh to account for the normal vector.
             // // The rotation is the angle between the +z(0,0,1) vector and the
             // // normal, which are both expressed in the local (Visual) frame.
             math::Vector3d normal = _geom->Data().PlaneShape()->Normal();
             localPose.Rot().From2Axes(math::Vector3d::UnitZ, normal.Normalized());
 
             matrix = math::Matrix4d(localPose);
+
+            int i = worldMesh.AddMaterial(mat);
+            mesh->SubMeshByIndex(0).lock()->SetMaterialIndex(i);
+
 
             subm = worldMesh.AddSubMesh(*mesh->SubMeshByIndex(0).lock().get());
             subm.lock()->Scale(scale);
@@ -238,6 +253,9 @@ class MyPlugin
             scale.X() = _geom->Data().SphereShape()->Radius() * 2;
             scale.Y() = scale.X();
             scale.Z() = scale.X();
+
+            int i = worldMesh.AddMaterial(mat);
+            mesh->SubMeshByIndex(0).lock()->SetMaterialIndex(i);
 
             subm = worldMesh.AddSubMesh(*mesh->SubMeshByIndex(0).lock().get());
             subm.lock()->Scale(scale);
@@ -264,41 +282,62 @@ class MyPlugin
               ignerr << "Mesh geometry missing uri" << std::endl;
               return true;
             }
-            mesh = meshManager->Load(_geom->Data().MeshShape()->Uri());
+            mesh = meshManager->Load(fullPath);
+
+            ignerr << "Submesh count : " << mesh->SubMeshCount() << std::endl;
 
             if(!mesh) {
+              ignerr << "MESH NOT FOUND!" << std::endl;
               return true;
             }
 
-            subm = worldMesh.AddSubMesh(*mesh->SubMeshByIndex(0).lock().get());
-            subm.lock()->Scale(_geom->Data().MeshShape()->Scale());
-            subMeshMatrix.push_back(matrix);
+            for(int k=0; k < mesh->SubMeshCount(); k++)
+            {
 
-            ignerr << "--- MATRIX : " << matrix << std::endl;
+              ignerr << ">>>>>>>>> SUBMESH : " << k << std::endl;
+              int j = mesh->SubMeshByIndex(k).lock()->MaterialIndex();
 
+              ignerr << "Query Material index : " << j << std::endl;
+
+              ignerr << "Material : " << mesh->MaterialByIndex(mesh->SubMeshByIndex(k).lock()->MaterialIndex()) << std::endl;
+              int i = 0;
+              if( j != -1 )
+              {
+                i = worldMesh.AddMaterial(mesh->MaterialByIndex(mesh->SubMeshByIndex(k).lock()->MaterialIndex() ));
+              } else
+              {
+                i = worldMesh.AddMaterial(mat);
+              }
+              //mesh->SubMeshByIndex(k).lock()->SetMaterialIndex(i);
+
+              ignerr << "Inserted Material index : " << i << std::endl;
+
+              ignerr << "Texture Image : " << worldMesh.MaterialByIndex(i)->TextureImage() << std::endl;
+
+              subm = worldMesh.AddSubMesh(*mesh->SubMeshByIndex(k).lock().get());
+              subm.lock()->SetMaterialIndex(i);
+              ignerr << "Scale : " <<_geom->Data().MeshShape()->Scale() << std::endl;
+
+              subm.lock()->Scale(_geom->Data().MeshShape()->Scale());
+              subMeshMatrix.push_back(matrix);
+
+              ignerr << ">>>>>>>>>" << std::endl;
+            }
 
         } else {
           ignerr << "It is NOT a mesh!"  << std::endl;
         }
 
-        // rendering::MaterialPtr material{nullptr};
-        // if (_visual.Material())
-        // {
-        //   material = this->LoadMaterial(*_visual.Material());
-        // } else if (__geom->Data().Type() != sdf::GeometryType::MESH)
-        // {
-        //   MaterialPtr mat(new Material());
-        // }
-
+        ignerr << "======================================================= " << std::endl;
 
         return true;
       });
 
+      //TODO (@gonzo) unharcode export mesh name
       exporter.Export(&worldMesh, "./worldMesh", true, subMeshMatrix);
       this->rendered = true;
   }
 };
-
 IGNITION_ADD_PLUGIN(MyPlugin,
                     System,
                     MyPlugin::ISystemPostUpdate)
