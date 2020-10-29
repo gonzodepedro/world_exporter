@@ -15,30 +15,29 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUISYSTEMPLUGIN_HH_
-#define IGNITION_GAZEBO_GUISYSTEMPLUGIN_HH_
+#ifndef IGNITION_GAZEBO_EXPORTWORLDTOMESH_HH_
+#define IGNITION_GAZEBO_EXPORTWORLDTOMESH_HH_
 
+#include <ignition/common/ColladaExporter.hh>
+#include <ignition/common/Mesh.hh>
+#include <ignition/common/MeshManager.hh>
+
+#include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
+#include <ignition/math/Matrix4.hh>
+
+
 /// \brief Example of a GUI plugin that has access to entities and components.
-class GuiSystemPlugin : public ignition::gazebo::GuiSystem
+class ExportWorldToMesh : public ignition::gazebo::GuiSystem
 {
   Q_OBJECT
 
-    /// \brief Custom property. Use this to create properties that can be read
-    /// from the QML file. See the declarations below.
-    Q_PROPERTY(
-      QString customProperty
-      READ CustomProperty
-      WRITE SetCustomProperty
-      NOTIFY CustomPropertyChanged
-    )
-
   /// \brief Constructor
-  public: GuiSystemPlugin();
+  public: ExportWorldToMesh();
 
   /// \brief Destructor
-  public: ~GuiSystemPlugin() override;
+  public: ~ExportWorldToMesh() override;
 
   /// \brief `ignition::gui::Plugin`s can overload this function to
   /// receive custom configuration from an XML file. Here, it comes from the
@@ -62,19 +61,16 @@ class GuiSystemPlugin : public ignition::gazebo::GuiSystem
   public: void Update(const ignition::gazebo::UpdateInfo &_info,
       ignition::gazebo::EntityComponentManager &_ecm) override;
 
-  /// \brief Get the custom property as a string.
-  /// \return Custom property
-  public: Q_INVOKABLE QString CustomProperty() const;
+    private:
+      bool rendered{false};
+      ignition::common::Mesh worldMesh;
+      ignition::gazebo::Entity world;
+      std::map<ignition::gazebo::Entity, std::pair<ignition::math::Pose3d, ignition::gazebo::Entity>> poses;
+      std::vector<ignition::math::Matrix4d> subMeshMatrix;
+      ignition::common::ColladaExporter exporter;
 
-  /// \brief Set the custom property from a string.
-  /// \param[in] _customProperty Custom property
-  public: Q_INVOKABLE void SetCustomProperty(const QString &_customProperty);
+    private: ignition::math::Pose3d GetPose(ignition::gazebo::Entity parent_, ignition::math::Pose3d currentPose);
 
-  /// \brief Notify that custom property has changed
-  signals: void CustomPropertyChanged();
-
-  /// \brief Custom property
-  private: QString customProperty;
 };
 
 #endif

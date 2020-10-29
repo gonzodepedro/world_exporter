@@ -20,5 +20,5 @@ import QtQuick.Controls 2.2
 // Display custom property text
 Text {
   width: 300
-  text: GuiSystemPlugin.customProperty
+  text: 'Export world to mesh'
 }
